@@ -1,11 +1,14 @@
 --[[ Copyright © 2022 Ryan Ciehanski ]]
 --[[ MIT license, see LICENSE for more details. ]]
 
+-- @module "nvim-git-line.utils"
+local utils = require("nvim-git-line.utils")
+
 local M = {}
+
 local api = vim.api
 local inspect = vim.inspect
 local format = string.format
-local utils = require("nvim-git-line.utils")
 
 function M.go()
   -- Get github URL
@@ -21,13 +24,13 @@ function M.go_line()
   utils.open_url(url)
 end
 
+-- @param line_lookup Boolean
+-- @return String
 function M.get_github_url(line_lookup)
-  -- Get current line number
-  local linenr = inspect(api.nvim_win_get_cursor(0))
   -- Get buffer name of open nvim buffer
   local bufname = utils.get_buffer_name()
   -- Get git branch name
-  local branch = utils.get_git_branch_name()
+  local branch = utils.get_branch_name()
   -- Get repo name
   local repo = utils.get_remote_repo_name()
   -- Get remote username from remote repo URL
@@ -35,7 +38,9 @@ function M.get_github_url(line_lookup)
   -- Craft Github URL
   local github_url = ""
   if line_lookup then
-    github_url = format("https://github.com/%s/%s/blob/%s/%s#%d", username, repo, branch, bufname, linenr)
+    -- Get current line number
+    local linenr = utils.get_line_number()
+    github_url = format("https://github.com/%s/%s/blob/%s/%s#L%s", username, repo, branch, bufname, linenr)
   else
     github_url = format("https://github.com/%s/%s/blob/%s/%s", username, repo, branch, bufname)
   end

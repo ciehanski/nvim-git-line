@@ -2,9 +2,11 @@
 --[[ MIT license, see LICENSE for more details. ]]
 
 local M = {}
+
 local api = vim.api
 local fn = vim.fn
 
+-- @param url String
 function M.open_url(url)
   -- Open URL in default browser
   local vim_os = vim.loop.os_uname().sysname
@@ -17,43 +19,68 @@ function M.open_url(url)
   end
 end
 
-function M.get_git_branch_name()
+-- @return String
+function M.get_branch_name()
   local branch = ""
-  if fn.system("git rev-parse --is-inside-work-tree | tr -d '\n'") == "true" then
+  if M.is_git_dir() then
     branch = fn.system("git branch --show-current | tr -d '\n'")
     local blen = branch:len()
     if blen ~= 0 then
-      if (blen - 1) == "%" then
-        branch = branch:sub(0, (blen - 1))
+      if branch:sub(-1) == "%" then
+        branch = branch:sub(0, (blen - 2))
       end
     end
   end
   return branch
 end
 
+-- @return String
 function M.get_remote_repo_name()
-  local remote_origin = fn.system("git remote get-url origin")
-  local repo_git = remote_origin:sub(remote_origin:find("/[^/]*$") + 1)
   local repo_name = ""
-  for v in string.gmatch(repo_git, "[^.]+") do
-    repo_name = v
-    break
+  if M.is_git_dir() then
+    local remote_origin = fn.system("git remote get-url origin | tr -d '\n'")
+    local repo_git = remote_origin:sub(remote_origin:find("/[^/]*$") + 1)
+    for v in string.gmatch(repo_git, "[^.]+") do
+      repo_name = v
+      break
+    end
   end
   return repo_name
 end
 
+-- @return String
 function M.get_remote_username()
-  local remote_origin = fn.system("git remote get-url origin")
-  local username_git = remote_origin:sub(remote_origin:find("/[^/]+/[^/]*$") + 1)
-  local username = username_git:match("^[^/]+")
+  local username = ""
+  if M.is_git_dir() then
+    local remote_origin = fn.system("git remote get-url origin")
+    local username_git = remote_origin:sub(remote_origin:find("/[^/]+/[^/]*$") + 1)
+    username = username_git:match("^[^/]+")
+  end
   return username
 end
 
+-- @return String
 function M.get_buffer_name()
   -- Get buffer name from bufnr
-  local bufname = fn.expand("%:t")
+  local bufpath = fn.expand("%:p")
+  local bufname = bufpath:sub(bufpath:find("[^/]+/[^/]+/[^/]*$"))
   -- Ship it
   return bufname
+end
+
+-- @return String
+function M.get_line_number()
+  return vim.inspect(api.nvim_win_get_cursor(0)[1])
+end
+
+-- @return Boolean
+function M.is_git_dir()
+  if fn.system("git rev-parse --is-inside-work-tree | tr -d '\n'") == "true" then
+    return true
+  else
+    vim.pretty_print("nvim-git-line: Unable to process, not in a working git repository.")
+    return false
+  end
 end
 
 return M
