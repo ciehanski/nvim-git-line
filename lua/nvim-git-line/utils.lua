@@ -62,7 +62,7 @@ end
 function M.get_buffer_name(repo_name)
   -- Get buffer name from bufnr
   local bufpath = fn.expand("%:p")
-  local _, eindex = bufpath:find(repo_name)
+  local _, eindex = bufpath:find(repo_name, 1, true)
   local bufname = bufpath:sub(eindex + 2)
   -- Ship it
   return bufname

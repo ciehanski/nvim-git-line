@@ -38,17 +38,17 @@ function M.get_repo_url(line_lookup)
   if line_lookup then
     -- Get current line number
     local linenr = utils.get_line_number()
-    -- if string.lower(M.config.provider) == "github" then
+    if string.lower(_G.NvimGitLine.config.provider) == "github" then
       repo_url = format("https://github.com/%s/%s/blob/%s/%s#L%s", username, repo, branch, bufname, linenr)
-    -- else
-    --   repo_url = format("https://gitlab.com/%s/%s/-/blob/%s/%s#L%s", username, repo, branch, bufname, linenr)
-    -- end
+    else
+      repo_url = format("https://gitlab.com/%s/%s/-/blob/%s/%s#L%s", username, repo, branch, bufname, linenr)
+    end
   else
-    -- if string.lower(M.config.provider) == "github" then
+    if string.lower(_G.NvimGitLine.config.provider) == "github" then
       repo_url = format("https://github.com/%s/%s/blob/%s/%s", username, repo, branch, bufname)
-    -- else
-    --   repo_url = format("https://gitlab.com/%s/%s/-/blob/%s/%s", username, repo, branch, bufname)
-    -- end
+    else
+      repo_url = format("https://gitlab.com/%s/%s/-/blob/%s/%s", username, repo, branch, bufname)
+    end
   end
   -- Ship it
   return repo_url

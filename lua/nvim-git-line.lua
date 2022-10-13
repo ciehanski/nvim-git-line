@@ -8,7 +8,7 @@ local M = {}
 
 local api = vim.api
 
-local default = {
+local default_config = {
   provider = "github",
   action_key = "<leader>gp",
   action_key_line = "<leader>gl",
@@ -16,7 +16,11 @@ local default = {
 }
 
 function M.setup(user_config)
-  M.config = vim.tbl_deep_extend("force", {}, default, user_config or {})
+  -- Export Module
+  _G.NvimGitLine = M
+
+  -- Get Config
+  M.config = vim.tbl_deep_extend("force", default_config, vim.b.nvim_git_line_config or {}, user_config or {})
 
   -- Set keymappings
   -- Open buffer in remote repo
