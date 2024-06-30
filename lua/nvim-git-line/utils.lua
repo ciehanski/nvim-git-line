@@ -50,9 +50,18 @@ end
 function M.get_remote_username()
   local username = ""
   if M.is_git_dir() then
-    local remote_origin = fn.system("git remote get-url origin")
-    local username_git = remote_origin:sub(remote_origin:find("/[^/]+/[^/]*$") + 1)
-    username = username_git:match("^[^/]+")
+    local remote_origin = fn.system("git remote get-url origin | tr -d '\n'")
+
+    local user_repo
+    if remote_origin:find("http") then
+      -- http(s)
+      user_repo = remote_origin:match("[^/]+/[^/]*$")
+    else
+      -- ssh
+      user_repo = remote_origin:match("[:/]([^:/]+/[^/]+)$")
+    end
+
+    username = user_repo:match("^[^/]+")
   end
   return username
 end
