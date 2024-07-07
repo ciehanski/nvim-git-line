@@ -10,12 +10,15 @@ local fn = vim.fn
 function M.open_url(url)
   -- Open URL in default browser
   local vim_os = vim.loop.os_uname().sysname
-  if vim_os == "Windows" then
+  if vim_os == "Windows" or vim_os == "Windows_NT" then
     -- Windows
     os.execute('start "" "' .. url .. '"')
+  elseif vim_os == "Darwin" then
+    -- macOS
+    os.execute('open "' .. url .. '"')
   else
-    -- All other OS'
-    os.execute('open "" "' .. url .. '"')
+    -- Linux
+    os.execute('xdg-open "' .. url .. '"')
   end
 end
 
@@ -50,9 +53,18 @@ end
 function M.get_remote_username()
   local username = ""
   if M.is_git_dir() then
-    local remote_origin = fn.system("git remote get-url origin")
-    local username_git = remote_origin:sub(remote_origin:find("/[^/]+/[^/]*$") + 1)
-    username = username_git:match("^[^/]+")
+    local remote_origin = fn.system("git remote get-url origin | tr -d '\n'")
+
+    local user_repo
+    if remote_origin:find("http") then
+      -- http(s)
+      user_repo = remote_origin:match("[^/]+/[^/]*$")
+    else
+      -- ssh
+      user_repo = remote_origin:match("(?:[:/])([^:/]+/[^/]+)$")
+    end
+
+    username = user_repo:match("^[^/]+")
   end
   return username
 end
